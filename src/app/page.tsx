@@ -1,9 +1,39 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
+import Link from "next/link";
+import { prisma } from "./db";
+import TodoItem from "../components/TodoItem";
 
-function Home() {
-  return (
-    <div>Home</div>
-  )
+function getTodos() {
+  return prisma.todo.findMany();
 }
 
-export default Home
+async function toggleTodo(id: string, complete: boolean){
+  "use server"
+  await prisma.todo.update({where: {id}, data: {complete}})
+}
+  
+async function Home() {
+
+  const todos = await getTodos();
+
+  return (
+    <>
+      <header className="text-2xl flex justify-between items-center mb-4">
+        <h1>Todo List</h1>
+        <Link
+          className="border border-slate-300 text-slate-300 px-1 py-2 rounded hover:bg-slate-700 focus-within:bg-slate-700 outline-none"
+          href="/new"
+        >
+          New
+        </Link>
+      </header>
+      <ul className="pl-4">
+        {todos.map(todo =>(
+          <TodoItem key={todo.id} {...todo} toggleTodo={toggleTodo} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+export default Home;
